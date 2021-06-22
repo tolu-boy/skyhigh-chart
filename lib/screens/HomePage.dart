@@ -1,6 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:charts_flutter/flutter.dart' as charts;
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:skyhigh/models/pollution.dart';
+import 'package:skyhigh/models/sales.dart';
+import 'package:skyhigh/models/task.dart';
+import 'package:dio/dio.dart';
 
 class HomePage extends StatefulWidget {
   final Widget child;
@@ -11,6 +17,24 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  Dio dio = new Dio();
+  // finction to post to url
+  Future postData() async {
+    final String pathUrl =
+        'https://g54qw205uk.execute-api.eu-west-1.amazonaws.com/DEV/stub';
+    dynamic data = {"angular_test": "angular-developer"};
+
+    var response = await dio.post(pathUrl,
+        data: data,
+        options: Options(headers: {
+          'Content-type': 'application/json; charset=UTF-8',
+        }));
+    if (response.statusCode == 200) {
+      data = jsonDecode(response.data);
+    }
+  }
+
+// fake data for the api
   List<charts.Series<Pollution, String>> _seriesData;
   List<charts.Series<Task, String>> _seriesPieData;
   List<charts.Series<Sales, int>> _seriesLineData;
@@ -76,7 +100,7 @@ class _HomePageState extends State<HomePage> {
         fillPatternFn: (_, __) => charts.FillPatternType.solid,
         fillColorFn: (Pollution pollution, _) =>
             charts.ColorUtil.fromDartColor(Color(0xff990099)),
-      ), 
+      ),
     );
 
     _seriesData.add(
@@ -87,7 +111,7 @@ class _HomePageState extends State<HomePage> {
         data: data2,
         fillPatternFn: (_, __) => charts.FillPatternType.solid,
         fillColorFn: (Pollution pollution, _) =>
-           charts.ColorUtil.fromDartColor(Color(0xff109618)),
+            charts.ColorUtil.fromDartColor(Color(0xff109618)),
       ),
     );
 
@@ -98,8 +122,8 @@ class _HomePageState extends State<HomePage> {
         id: '2019',
         data: data3,
         fillPatternFn: (_, __) => charts.FillPatternType.solid,
-       fillColorFn: (Pollution pollution, _) =>
-          charts.ColorUtil.fromDartColor(Color(0xffff9900)),
+        fillColorFn: (Pollution pollution, _) =>
+            charts.ColorUtil.fromDartColor(Color(0xffff9900)),
       ),
     );
 
@@ -111,7 +135,7 @@ class _HomePageState extends State<HomePage> {
             charts.ColorUtil.fromDartColor(task.colorval),
         id: 'Air Pollution',
         data: piedata,
-         labelAccessorFn: (Task row, _) => '${row.taskvalue}',
+        labelAccessorFn: (Task row, _) => '${row.taskvalue}',
       ),
     );
 
@@ -150,7 +174,7 @@ class _HomePageState extends State<HomePage> {
     _seriesData = <charts.Series<Pollution, String>>[];
     _seriesPieData = <charts.Series<Task, String>>[];
     _seriesLineData = <charts.Series<Sales, int>>[];
-    
+
     _generateData();
   }
 
@@ -160,7 +184,6 @@ class _HomePageState extends State<HomePage> {
       home: DefaultTabController(
         length: 4,
         child: Scaffold(
-
           appBar: AppBar(
             backgroundColor: Color(0xff1976d2),
             //backgroundColor: Color(0xff308e1c),
@@ -175,7 +198,6 @@ class _HomePageState extends State<HomePage> {
                 ),
                 Tab(icon: Icon(FontAwesomeIcons.chartPie)),
                 Tab(icon: Icon(FontAwesomeIcons.chartLine)),
-                
               ],
             ),
             title: Text('SkyHigh Sales Charts'),
@@ -189,7 +211,10 @@ class _HomePageState extends State<HomePage> {
                     child: Column(
                       children: <Widget>[
                         Text(
-                            'Historical Sales data',style: TextStyle(fontSize: 20.0,fontWeight: FontWeight.bold),),
+                          'Historical Sales data',
+                          style: TextStyle(
+                              fontSize: 20.0, fontWeight: FontWeight.bold),
+                        ),
                         Expanded(
                           child: charts.BarChart(
                             _seriesData,
@@ -204,15 +229,17 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
-           
-            Padding(
+              Padding(
                 padding: EdgeInsets.all(8.0),
                 child: Container(
                   child: Center(
                     child: Column(
                       children: <Widget>[
                         Text(
-                            'Historical Sales data',style: TextStyle(fontSize: 20.0,fontWeight: FontWeight.bold),),
+                          'Historical Sales data',
+                          style: TextStyle(
+                              fontSize: 20.0, fontWeight: FontWeight.bold),
+                        ),
                         Expanded(
                           child: charts.BarChart(
                             _seriesData,
@@ -227,7 +254,6 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
-           
               Padding(
                 padding: EdgeInsets.all(8.0),
                 child: Container(
@@ -235,31 +261,39 @@ class _HomePageState extends State<HomePage> {
                     child: Column(
                       children: <Widget>[
                         Text(
-                            'composite bar chart',style: TextStyle(fontSize: 24.0,fontWeight: FontWeight.bold),),
-                            SizedBox(height: 10.0,),
+                          'composite bar chart',
+                          style: TextStyle(
+                              fontSize: 24.0, fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(
+                          height: 10.0,
+                        ),
                         Expanded(
-                          child: charts.PieChart(
-                            _seriesPieData,
-                            animate: true,
-                            animationDuration: Duration(seconds: 5),
-                             behaviors: [
-                            new charts.DatumLegend(
-                              outsideJustification: charts.OutsideJustification.endDrawArea,
-                              horizontalFirst: false,
-                              desiredMaxRows: 2,
-                              cellPadding: new EdgeInsets.only(right: 4.0, bottom: 4.0),
-                              entryTextStyle: charts.TextStyleSpec(
-                                  color: charts.MaterialPalette.purple.shadeDefault,
-                                  fontFamily: 'Georgia',
-                                  fontSize: 11),
-                            )
-                          ],
-                           defaultRenderer: new charts.ArcRendererConfig(
-                              arcWidth: 100,
-                             arcRendererDecorators: [
-          new charts.ArcLabelDecorator(
-              labelPosition: charts.ArcLabelPosition.inside)
-        ])),
+                          child: charts.PieChart(_seriesPieData,
+                              animate: true,
+                              animationDuration: Duration(seconds: 5),
+                              behaviors: [
+                                new charts.DatumLegend(
+                                  outsideJustification:
+                                      charts.OutsideJustification.endDrawArea,
+                                  horizontalFirst: false,
+                                  desiredMaxRows: 2,
+                                  cellPadding: new EdgeInsets.only(
+                                      right: 4.0, bottom: 4.0),
+                                  entryTextStyle: charts.TextStyleSpec(
+                                      color: charts
+                                          .MaterialPalette.purple.shadeDefault,
+                                      fontFamily: 'Georgia',
+                                      fontSize: 11),
+                                )
+                              ],
+                              defaultRenderer: new charts.ArcRendererConfig(
+                                  arcWidth: 100,
+                                  arcRendererDecorators: [
+                                    new charts.ArcLabelDecorator(
+                                        labelPosition:
+                                            charts.ArcLabelPosition.inside)
+                                  ])),
                         ),
                       ],
                     ),
@@ -273,27 +307,34 @@ class _HomePageState extends State<HomePage> {
                     child: Column(
                       children: <Widget>[
                         Text(
-                            'Sales for the first 5 years',style: TextStyle(fontSize: 24.0,fontWeight: FontWeight.bold),),
+                          'Sales for the first 5 years',
+                          style: TextStyle(
+                              fontSize: 24.0, fontWeight: FontWeight.bold),
+                        ),
                         Expanded(
-                          child: charts.LineChart(
-                            _seriesLineData,
-                            defaultRenderer: new charts.LineRendererConfig(
-                                includeArea: true, stacked: true),
-                            animate: true,
-                            animationDuration: Duration(seconds: 5),
-                            behaviors: [
-        new charts.ChartTitle('Years',
-            behaviorPosition: charts.BehaviorPosition.bottom,
-            titleOutsideJustification:charts.OutsideJustification.middleDrawArea),
-        new charts.ChartTitle('Sales',
-            behaviorPosition: charts.BehaviorPosition.start,
-            titleOutsideJustification: charts.OutsideJustification.middleDrawArea),
-        new charts.ChartTitle('Departments',
-            behaviorPosition: charts.BehaviorPosition.end,
-            titleOutsideJustification:charts.OutsideJustification.middleDrawArea,
-            )   
-      ]
-                          ),
+                          child: charts.LineChart(_seriesLineData,
+                              defaultRenderer: new charts.LineRendererConfig(
+                                  includeArea: true, stacked: true),
+                              animate: true,
+                              animationDuration: Duration(seconds: 5),
+                              behaviors: [
+                                new charts.ChartTitle('Years',
+                                    behaviorPosition:
+                                        charts.BehaviorPosition.bottom,
+                                    titleOutsideJustification: charts
+                                        .OutsideJustification.middleDrawArea),
+                                new charts.ChartTitle('Sales',
+                                    behaviorPosition:
+                                        charts.BehaviorPosition.start,
+                                    titleOutsideJustification: charts
+                                        .OutsideJustification.middleDrawArea),
+                                new charts.ChartTitle(
+                                  'Departments',
+                                  behaviorPosition: charts.BehaviorPosition.end,
+                                  titleOutsideJustification: charts
+                                      .OutsideJustification.middleDrawArea,
+                                )
+                              ]),
                         ),
                       ],
                     ),
@@ -306,27 +347,4 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-}
-
-class Pollution {
-  String place;
-  int year;
-  int quantity;
-
-  Pollution(this.year, this.place, this.quantity);
-}
-
-class Task {
-  String task;
-  double taskvalue;
-  Color colorval;
-
-  Task(this.task, this.taskvalue, this.colorval);
-}
-
-class Sales {
-  int yearval;
-  int salesval;
-
-  Sales(this.yearval, this.salesval);
 }
